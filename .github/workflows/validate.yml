@@ -8,7 +8,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup RunReveal CLI
       run: |
@@ -17,11 +17,9 @@ jobs:
         chmod +x runreveal
         rm runreveal-linux-amd64.tar.gz
         
-    - name: Configure RunReveal
-      run: |
-        ./runreveal configure --api-key ${{ secrets.RUNREVEAL_API_KEY }}
-        
     - name: Lint Detections
+      env:
+        RUNREVEAL_TOKEN: ${{ secrets.RUNREVEAL_API_KEY }}
       run: |
         ./runreveal lint sigma detections/sigma
         ./runreveal lint sql detections/sql

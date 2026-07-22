@@ -8,7 +8,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup RunReveal CLI
       run: |
@@ -22,6 +22,7 @@ jobs:
         ./runreveal configure --api-key ${{ secrets.RUNREVEAL_API_KEY }}
         
     - name: Deploy Detections
+      env:
+        RUNREVEAL_TOKEN: ${{ secrets.RUNREVEAL_API_KEY }}
       run: |
-        # Corrección: Unificación de la ruta al directorio raíz de detecciones.
         ./runreveal detections sync -d detections
