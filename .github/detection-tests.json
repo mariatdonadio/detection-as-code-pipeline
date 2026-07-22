@@ -1,0 +1,12 @@
+[
+  {
+    "detection_file": "detections/sigma/okta/users/suspicious_login.yml",
+    "input_file": "samples/test_data_1.json",
+    "expected_exit_code": 1
+  },
+  {
+    "detection_file": "detections/sigma/aws/cloudtrail/privilege_escalation.yml",
+    "input_file": "samples/test_data_2.json",
+    "expected_exit_code": 0
+  }
+]

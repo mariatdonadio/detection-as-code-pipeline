@@ -1,0 +1,27 @@
+name: Deploy Detections
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup RunReveal CLI
+      run: |
+        curl -L https://github.com/runreveal/homebrew-runreveal/releases/latest/download/runreveal-linux-amd64.tar.gz > runreveal-linux-amd64.tar.gz
+        tar -xvf runreveal-linux-amd64.tar.gz
+        chmod +x runreveal
+        rm runreveal-linux-amd64.tar.gz
+        
+    - name: Configure RunReveal
+      run: |
+        ./runreveal configure --api-key ${{ secrets.RUNREVEAL_API_KEY }}
+        
+    - name: Deploy Detections
+      run: |
+        # Corrección: Unificación de la ruta al directorio raíz de detecciones.
+        ./runreveal detections sync -d detections
