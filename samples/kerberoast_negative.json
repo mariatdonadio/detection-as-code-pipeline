@@ -1,0 +1,8 @@
+{
+  "EventID": 4769,
+  "TargetUserName": "PC-001$",
+  "ServiceName": "SERVER01$",
+  "TicketEncryptionType": "0x17",
+  "IpAddress": "10.10.1.50",
+  "TicketOptions": "0x40810000"
+}

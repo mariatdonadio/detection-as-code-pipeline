@@ -1,0 +1,27 @@
+title: Potential Kerberoasting Attack
+id: 5f4d0e9d-1234-4f5d-8abc-001122334455
+status: experimental
+description: Detects possible Kerberoasting by identifying RC4 encrypted Kerberos service ticket requests.
+author: Maria Donadio
+date: 2026/07/22
+references:
+  - https://attack.mitre.org/techniques/T1558/003/
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4769
+    TicketEncryptionType: '0x17'
+  filter_computers:
+    ServiceName|endswith: '$'
+  filter_krbtgt:
+    ServiceName: 'krbtgt'
+  condition: selection and not 1 of filter_*
+falsepositives:
+  - Legacy applications
+  - Older service accounts
+level: medium
+tags:
+  - attack.credential_access
+  - attack.t1558.003

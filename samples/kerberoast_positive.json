@@ -1,0 +1,8 @@
+{
+  "EventID": 4769,
+  "TargetUserName": "svc_backup",
+  "ServiceName": "MSSQLSvc/sqlserver01.contoso.local",
+  "TicketEncryptionType": "0x17",
+  "IpAddress": "10.10.1.25",
+  "TicketOptions": "0x40810000"
+}
