@@ -1,4 +1,5 @@
 name: Detection Validation
+
 on:
   pull_request:
     branches: [ main ]
@@ -7,7 +8,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup RunReveal CLI
       run: |
@@ -16,37 +17,50 @@ jobs:
         chmod +x runreveal
         rm runreveal-linux-amd64.tar.gz
         
-    - name: Configure RunReveal
-      run: |
-        ./runreveal configure --api-key ${{ secrets.RUNREVEAL_API_KEY }}
-        
     - name: Lint Detections
+      env:
+        RUNREVEAL_TOKEN: ${{ secrets.RUNREVEAL_API_KEY }}
       run: |
-        ./runreveal lint sigma <sigma_directory>
-        ./runreveal lint sql <sql_directory>
+        ./runreveal lint sigma detections/sigma
+        ./runreveal lint sql detections/sql
         
-    - name: Load Test Configuration
-      id: load-config
-      run: |
-        echo "matrix=$(cat .github/detection-tests.json)" >> $GITHUB_OUTPUT
-
     - name: Test Detections
-      strategy:
-        matrix:
-          include: ${{ fromJson(steps.load-config.outputs.matrix) }}
+      env:
+        RUNREVEAL_TOKEN: ${{ secrets.RUNREVEAL_API_KEY }}
       run: |
-        ./runreveal detections run -f ${{ matrix.detection_file }} -i ${{ matrix.input_file }}
-        exit_code=$?
-        expected_exit_code=${{ matrix.expected_exit_code }}
+        failed_tests=0
         
-        if [ $exit_code -eq $expected_exit_code ]; then
-          echo "SUCCESS: ${{ matrix.detection_file }} test passed (exit code: $exit_code)"
-        else
-          echo "FAILURE: ${{ matrix.detection_file }} expected exit code $expected_exit_code but got $exit_code"
+        # Iterar sobre el archivo JSON directamente con jq
+        while read -r row; do
+          detection_file=$(echo "$row" | jq -r '.detection_file')
+          input_file=$(echo "$row" | jq -r '.input_file')
+          expected_exit_code=$(echo "$row" | jq -r '.expected_exit_code')
+          
+          echo "========================================"
+          echo "Testing: $detection_file"
+          echo "Input: $input_file"
+          
+          set +e
+          ./runreveal detections run -f "$detection_file" -i "$input_file"
+          exit_code=$?
+          set -e
+          
+          if [ "$exit_code" -eq "$expected_exit_code" ]; then
+            echo "SUCCESS: test passed (exit code: $exit_code)"
+          else
+            echo "FAILURE: expected exit code $expected_exit_code but got $exit_code"
+            failed_tests=1
+          fi
+        done < <(jq -c '.[]' .github/detection-tests.json)
+        
+        if [ "$failed_tests" -ne 0 ]; then
+          echo "ERROR: One or more detection tests failed."
           exit 1
         fi
         
     - name: Dry Run Sync
+      env:
+        RUNREVEAL_TOKEN: ${{ secrets.RUNREVEAL_API_KEY }}
       run: |
-        ./runreveal detections sync --dry-run -d sigma
-        ./runreveal detections sync --dry-run -d sql
+        ./runreveal detections sync --dry-run -d detections/sigma
+        ./runreveal detections sync --dry-run -d detections/sql
