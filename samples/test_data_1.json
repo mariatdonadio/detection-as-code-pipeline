@@ -1,0 +1,10 @@
+{
+  "eventType": "user.session.start",
+  "outcome": {
+    "result": "FAILURE",
+    "reason": "INVALID_CREDENTIALS"
+  },
+  "actor": {
+    "alternateId": "admin@example.com"
+  }
+}

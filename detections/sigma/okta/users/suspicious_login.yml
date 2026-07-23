@@ -1,0 +1,15 @@
+title: Suspicious Okta Login Failure
+id: 12345678-1234-1234-1234-123456789012
+status: experimental
+description: Detects failed Okta login attempts.
+author: Pipeline Admin
+date: 2026/07/22
+logsource:
+    product: okta
+    service: okta
+detection:
+    selection:
+        eventType: 'user.session.start'
+        outcome.result: 'FAILURE'
+    condition: selection
+level: medium

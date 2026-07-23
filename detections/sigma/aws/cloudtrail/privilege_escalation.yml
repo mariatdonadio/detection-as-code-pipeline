@@ -1,0 +1,16 @@
+title: AWS IAM Privilege Escalation
+id: 87654321-4321-4321-4321-210987654321
+status: experimental
+description: Detects changes to IAM policies that could indicate privilege escalation.
+author: Pipeline Admin
+date: 2026/07/22
+logsource:
+    product: aws
+    service: cloudtrail
+detection:
+    selection:
+        eventName:
+            - 'PutUserPolicy'
+            - 'AttachUserPolicy'
+    condition: selection
+level: high

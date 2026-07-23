@@ -1,5 +1,4 @@
 name: Detection Validation
-
 on:
   pull_request:
     branches: [ main ]
@@ -8,7 +7,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     
     - name: Setup RunReveal CLI
       run: |
@@ -17,37 +16,30 @@ jobs:
         chmod +x runreveal
         rm runreveal-linux-amd64.tar.gz
         
-    - name: Lint Detections
-      env:
-        RUNREVEAL_TOKEN: ${{ secrets.RUNREVEAL_API_KEY }}
+    - name: Configure RunReveal
       run: |
-        ./runreveal lint sigma detections/sigma
-        ./runreveal lint sql detections/sql
+        ./runreveal configure --api-key ${{ secrets.RUNREVEAL_API_KEY }}
+        
+    - name: Lint Detections
+      run: |
+        ./runreveal lint sigma <sigma_directory>
+        ./runreveal lint sql <sql_directory>
         
     - name: Load Test Configuration
       id: load-config
       run: |
-        # Corrección: Uso de EOF para manejar el JSON multilínea en bash sin que se corte.
-        {
-          echo 'matrix<<EOF'
-          cat .github/detection-tests.json
-          echo EOF
-        } >> "$GITHUB_OUTPUT"
+        echo "matrix=$(cat .github/detection-tests.json)" >> $GITHUB_OUTPUT
 
     - name: Test Detections
       strategy:
         matrix:
           include: ${{ fromJson(steps.load-config.outputs.matrix) }}
       run: |
-        # Corrección: set +e evita que un exit code de 1 mate el contenedor inmediatamente.
-        set +e
         ./runreveal detections run -f ${{ matrix.detection_file }} -i ${{ matrix.input_file }}
         exit_code=$?
-        set -e
-        
         expected_exit_code=${{ matrix.expected_exit_code }}
         
-        if [ "$exit_code" -eq "$expected_exit_code" ]; then
+        if [ $exit_code -eq $expected_exit_code ]; then
           echo "SUCCESS: ${{ matrix.detection_file }} test passed (exit code: $exit_code)"
         else
           echo "FAILURE: ${{ matrix.detection_file }} expected exit code $expected_exit_code but got $exit_code"
@@ -56,5 +48,5 @@ jobs:
         
     - name: Dry Run Sync
       run: |
-        ./runreveal detections sync --dry-run -d detections/sigma
-        ./runreveal detections sync --dry-run -d detections/sql
+        ./runreveal detections sync --dry-run -d sigma
+        ./runreveal detections sync --dry-run -d sql

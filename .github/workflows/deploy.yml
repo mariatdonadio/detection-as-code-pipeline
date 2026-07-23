@@ -1,5 +1,4 @@
 name: Deploy Detections
-
 on:
   push:
     branches: [ main ]
@@ -8,7 +7,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     
     - name: Setup RunReveal CLI
       run: |
@@ -22,7 +21,5 @@ jobs:
         ./runreveal configure --api-key ${{ secrets.RUNREVEAL_API_KEY }}
         
     - name: Deploy Detections
-      env:
-        RUNREVEAL_TOKEN: ${{ secrets.RUNREVEAL_API_KEY }}
       run: |
-        ./runreveal detections sync -d detections
+        ./runreveal detections sync -d ./detections
